@@ -1,0 +1,25 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "com.example.ticket",
+    "sha256_cert_fingerprints":
+    ["83:1C:FA:A6:F3:8C:01:FE:35:C0:8F:58:09:D6:B0:B7:43:04:A8:C9:99:89:0D:30:20:1F:B8:55:B0:15:E3:46"]
+  }
+},
+  {
+    "relation": ["delegate_permission/common.get_login_creds"],
+    "target": {
+      "namespace": "web",
+      "site": "https://login.example.com"
+    }
+  },
+  {
+    "relation": ["delegate_permission/common.get_login_creds"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.example.ticket",
+      "sha256_cert_fingerprints":
+      ["83:1C:FA:A6:F3:8C:01:FE:35:C0:8F:58:09:D6:B0:B7:43:04:A8:C9:99:89:0D:30:20:1F:B8:55:B0:15:E3:46"]
+    }
+  }]
