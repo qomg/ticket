@@ -31,10 +31,10 @@ class MainActivity : ComponentActivity() {
                             .clickable {
 //                                startTechDiscovered()
 //                                return@clickable
-                                startNfcReader()
-                                return@clickable
-                                startNdefDiscovered()
-                                return@clickable
+//                                startNfcReader()
+//                                return@clickable
+//                                startNdefDiscovered()
+//                                return@clickable
                                 showInstallPrompt()
                             },
                         text = "MainActivity",
@@ -46,23 +46,24 @@ class MainActivity : ComponentActivity() {
         //launchMarket()
     }
 
-    private fun startTechDiscovered() {
-        val intent = NfcTagHelper.makeIntent(packageName) ?: return
-        startActivity(intent)
-    }
-
-    private fun startNdefDiscovered() {
-        startActivity(
-            Intent(NfcAdapter.ACTION_NDEF_DISCOVERED)
-                .setData("vnd.android.nfc://ext/abc:d".toUri())
-        )
-    }
-
-    private fun startNfcReader() {
-        startActivity(
-            Intent(this, NfcReaderActivity::class.java)
-        )
-    }
+//    private fun startTechDiscovered() {
+//        val intent = NfcTagHelper.makeIntent(packageName) ?: return
+//        startActivity(intent)
+//    }
+//
+//    private fun startNdefDiscovered() {
+//        startActivity(
+//            Intent(NfcAdapter.ACTION_TECH_DISCOVERED)
+//                .setType("application/vnd.com.example.ticket")
+//                //.setData("vnd.android.nfc://ext/abc:d".toUri())
+//        )
+//    }
+//
+//    private fun startNfcReader() {
+//        startActivity(
+//            Intent(this, NfcReaderActivity::class.java)
+//        )
+//    }
 
     private fun showInstallPrompt() {
         if (InstantApps.getPackageManagerCompat(this).isInstantApp) {

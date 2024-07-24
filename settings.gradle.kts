@@ -21,6 +21,7 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "My Application"
-include(":app")
+rootProject.name = "Ticket"
+//include(":app")
+include(":nfc")
 //include(":exchange")

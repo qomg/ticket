@@ -2,105 +2,108 @@ package com.example.ticket
 
 import android.app.PendingIntent
 import android.content.Intent
-import android.content.IntentFilter
 import android.nfc.NdefMessage
+import android.nfc.NdefRecord
 import android.nfc.NfcAdapter
 import android.nfc.Tag
-import android.nfc.tech.IsoDep
 import android.nfc.tech.MifareUltralight
 import android.nfc.tech.Ndef
-import android.nfc.tech.NfcA
-import android.nfc.tech.NfcB
-import android.nfc.tech.NfcF
-import android.nfc.tech.NfcV
 import android.os.Bundle
 import android.util.Log
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.gestures.scrollable
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import com.example.ticket.nfc.card.CardManager
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import com.example.ticket.ui.theme.MyApplicationTheme
-import kotlinx.coroutines.CoroutineName
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.launch
 import java.nio.charset.Charset
-import kotlin.coroutines.EmptyCoroutineContext
 
-class NfcTicketActivity : ComponentActivity() {
+class MainActivity : ComponentActivity() {
 
     private var counter: Int = 0
     private var nfcAdapter: NfcAdapter? = null
-    private val result = MutableStateFlow("Scan a tag:")
+    private val message = MutableStateFlow("Scan a tag:")
+    private val records = MutableStateFlow<List<NdefRecord>?>(null)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        if (intent.action == NfcAdapter.ACTION_TECH_DISCOVERED) {
-            result.value += "Discovered tag ${++counter} with intent: ${intent.data}"
-        }
         setContent {
-            MyApplicationTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Column(Modifier.padding(innerPadding)) {
-                        val text by result.collectAsState()
-                        Text(text = text)
+            ContentView()
+        }
+        if (intent.action == NfcAdapter.ACTION_TECH_DISCOVERED) {
+            message.value = "Discovered tag ${++counter} with intent: ${intent.data}"
+        }
+        message.value += intent.dataString ?: ""
+        nfcAdapter = NfcAdapter.getDefaultAdapter(this)
+        if (nfcAdapter == null) {
+            message.value += "NFC is not available"
+            return
+        }
+        if (nfcAdapter?.isEnabled != true) {
+            message.value += "NFC is not enable"
+            return
+        }
+    }
+
+    @Composable
+    fun ContentView() {
+        MyApplicationTheme {
+            Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                Column(
+                    Modifier
+                        .padding(innerPadding)
+                        .padding(vertical = 20.dp)
+                ) {
+                    val msg by message.collectAsState()
+                    val records by records.collectAsState()
+                    Text(msg)
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(10.dp),
+                    ) {
+                        itemsIndexed(records ?: emptyList()) { index, record ->
+                            Spacer(modifier = Modifier.height(10.dp))
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .background(Color.White, shape = RoundedCornerShape(15.dp))
+                                    .padding(10.dp),
+                            ) {
+                                Text(text = "记录${index + 1}")
+                                record.toMimeType()
+                                Text(text = "地址: ${record.toUri()}")
+                                val query = record.toUri().encodedQuery
+                                if (query.isNullOrEmpty()) {
+                                    Text(text = String(record.payload, Charset.forName("UTF-8")))
+                                } else {
+                                    Text(text = "参数: $query")
+                                }
+                            }
+                        }
                     }
                 }
             }
         }
-
-        nfcAdapter = NfcAdapter.getDefaultAdapter(this)
-        if (nfcAdapter == null) {
-            append("NFC is not available")
-            return
-        }
-        if (nfcAdapter?.isEnabled != true) {
-            append("NFC is not enable")
-            return
-        }
     }
-
-    private fun append(text: String) {
-        CoroutineScope(EmptyCoroutineContext).launch {
-            result.tryEmit(result.value + "\n" + text)
-        }
-    }
-
-//    private val buildIntent: Intent by lazy {
-//        Intent(this, NfcTicketActivity::class.java)
-//            .addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
-//    }
-//
-//    private val filters: Array<IntentFilter> by lazy {
-//        arrayOf(
-//            IntentFilter.create(NfcAdapter.ACTION_NDEF_DISCOVERED, "*/*"),
-//            IntentFilter.create(NfcAdapter.ACTION_TECH_DISCOVERED, "*/*"),
-//        )
-//    }
-//
-//    private val techList: Array<Array<String>> by lazy {
-//        arrayOf(
-//            arrayOf(
-//                NfcA::class.java.name,
-//                NfcB::class.java.name,
-//                NfcF::class.java.name,
-//                NfcV::class.java.name,
-//                IsoDep::class.java.name,
-//            )
-//        )
-//    }
 
     override fun onResume() {
         super.onResume()
@@ -109,10 +112,9 @@ class NfcTicketActivity : ComponentActivity() {
             PendingIntent.getActivity(
                 this,
                 1,
-                Intent(this, NfcTicketActivity::class.java)
+                Intent(this, MainActivity::class.java)
                     .addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP),
                 PendingIntent.FLAG_MUTABLE
-//                FLAG_ONE_SHOT or FLAG_IMMUTABLE
             ),
             null,
             null
@@ -126,22 +128,24 @@ class NfcTicketActivity : ComponentActivity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        append("Discovered tag ${++counter} with action: ${intent.action}, data: ${intent.dataString}")
+        message.value = listOf(
+            "Discovered tag ${++counter} with",
+            "action: ${intent.action}",
+            "data: ${intent.dataString}"
+        ).joinToString("\n")
 
         intent.getParcelableArrayExtra(NfcAdapter.EXTRA_NDEF_MESSAGES)?.forEach { msg ->
-            (msg as? NdefMessage)?.records?.forEach { record ->
-                println(record.toUri())
-            }
+            (msg as? NdefMessage)?.records?.joinToString("\n") { record ->
+                println(String(record.payload, Charset.forName("UTF-8")))
+                record.toUri()?.toString() ?: ""
+            }?.let { println("NdefMessage:\n$it") }
         }
 
-        val tag = intent.getParcelableExtra<Tag>(NfcAdapter.EXTRA_TAG)
-
-        if (tag!= null) {
-            if (intent.action == NfcAdapter.ACTION_TAG_DISCOVERED) {
-                NfcTag.writeNfc(this, tag)
-            } else {
-                handleNdefMessage(tag)
-            }
+        intent.getParcelableExtra<Tag>(NfcAdapter.EXTRA_TAG)?.let {
+            Ndef.get(it)
+        }?.runCatching {
+            connect()
+            records.value = ndefMessage.records?.toList()
         }
     }
 
@@ -160,9 +164,11 @@ class NfcTicketActivity : ComponentActivity() {
                     val amountToRecharge = byteArrayToInt(payload, 1, 4) // 假设接下来 4 个字节表示充值金额
                     rechargeTicket(amountToRecharge)
                 }
+
                 0x02 -> { // 查询余额
                     queryBalance()
                 }
+
                 0x03 -> { // 查询交易记录
                     queryTransactionRecords()
                 }

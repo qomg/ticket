@@ -1,4 +1,4 @@
-package com.example.ticket;
+package com.example.ticket.reader;
 
 public class IsoDepHelper {
     // AID for our loyalty card service.

@@ -1,4 +1,4 @@
-package com.example.ticket;
+package com.example.ticket.deprecate;
 
 
 import android.content.Intent;

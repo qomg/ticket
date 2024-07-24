@@ -1,16 +1,24 @@
-package com.example.ticket
+package com.example.ticket.reader
 
 import android.nfc.NfcAdapter
 import android.nfc.Tag
 import android.nfc.tech.IsoDep
+import android.nfc.tech.NfcA
+import com.example.ticket.nfc.card.CardManager
 import java.nio.charset.Charset
 
 class LoyaltyCardReader : NfcAdapter.ReaderCallback {
 
     override fun onTagDiscovered(tag: Tag?) {
-        tag?.let {
-            IsoDep.get(it)
-        }?.runCatching {
+        println("onTagDiscovered, ${tag}")
+        tag?.let { NfcA.get(it) }?.runCatching {
+            connect()
+            isConnected
+            //transceive("hello world".toByteArray())
+        }?.onFailure {
+            it.printStackTrace()
+        }
+        tag?.let { IsoDep.get(it) }?.runCatching {
             connect()
             val cmd = IsoDepHelper.BuildSelectApdu(IsoDepHelper.SAMPLE_LOYALTY_CARD_AID)
             IsoDepHelper.ByteArrayToHexString(cmd)

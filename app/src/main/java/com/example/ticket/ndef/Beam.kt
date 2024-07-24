@@ -1,4 +1,4 @@
-package com.example.ticket
+package com.example.ticket.ndef
 
 import android.content.Intent
 import android.nfc.NdefMessage
@@ -6,6 +6,7 @@ import android.nfc.NdefRecord
 import android.nfc.NfcAdapter
 import android.nfc.NfcEvent
 import android.nfc.Tag
+import android.nfc.tech.MifareUltralight
 import android.nfc.tech.Ndef
 import android.os.Bundle
 import android.widget.Toast
@@ -22,6 +23,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import com.example.ticket.ui.theme.MyApplicationTheme
 import kotlinx.coroutines.flow.MutableStateFlow
+import java.nio.charset.Charset
 
 class Beam : ComponentActivity(), NfcAdapter.CreateNdefMessageCallback {
 
@@ -57,7 +59,7 @@ class Beam : ComponentActivity(), NfcAdapter.CreateNdefMessageCallback {
                 "Beam Time: " + System.currentTimeMillis()
         return NdefMessage(
             arrayOf(
-                NdefRecord.createMime("application/vnd.com.example.android.beam", text.toByteArray())
+                NdefRecord.createMime("application/vnd.com.example.ticket", text.toByteArray())
             )
             /**
              * The Android Application Record (AAR) is commented out. When a device
@@ -66,7 +68,7 @@ class Beam : ComponentActivity(), NfcAdapter.CreateNdefMessageCallback {
              * You can add it back in to guarantee that this
              * activity starts when receiving a beamed message. For now, this code
              * uses the tag dispatch system.
-             *///,NdefRecord.createApplicationRecord("com.example.android.beam")
+             *///,NdefRecord.createApplicationRecord("com.example.ticket")
         )
     }
 
@@ -99,23 +101,6 @@ class Beam : ComponentActivity(), NfcAdapter.CreateNdefMessageCallback {
 
 
 
-    private fun writeNfc(tag: Tag) {
-        val msg = NdefMessage(
-            NdefRecord.createApplicationRecord(packageName),
-            NdefRecord.createUri("https://example.com/ticket"),
-            NdefRecord.createTextRecord("en", "hello world")
-        )
-        runCatching {
-            val ndef = Ndef.get(tag)
-            if (ndef != null) {
-                ndef.connect()
-                if (ndef.isWritable) {
-                    ndef.writeNdefMessage(msg)
-                    Toast.makeText(this, "ndef message write success", Toast.LENGTH_SHORT).show()
-                }
-            }
-        }.onFailure {
-            Toast.makeText(this, "ndef message write failure: " + it.message, Toast.LENGTH_SHORT).show()
-        }
-    }
+
+
 }

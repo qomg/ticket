@@ -1,4 +1,4 @@
-package com.example.ticket
+package com.example.ticket.reader
 
 import android.content.Intent
 import android.nfc.NfcAdapter
@@ -46,7 +46,7 @@ class NfcReaderActivity : ComponentActivity() {
         NfcAdapter.getDefaultAdapter(this)?.enableReaderMode(
             this,
             LoyaltyCardReader(),
-            /*NfcAdapter.FLAG_READER_NFC_A or */NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK,
+            NfcAdapter.FLAG_READER_NFC_A or NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK,
             null
         )
     }
